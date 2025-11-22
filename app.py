@@ -1,28 +1,28 @@
 import streamlit as st
 import requests
 import re
-import time
 
 st.set_page_config(page_title="Sanchari AI", page_icon="🌍", layout="centered")
 
 HEADERS = {
-    'User-Agent': 'SanchariAI_StudentProject/1.0 (student_project@example.com)', 
+    'User-Agent': 'SanchariAI_StudentProject/1.0', 
     'Accept': 'application/json'
 }
 
 @st.cache_data(ttl=3600)
 def get_coordinates(place):
-    url = "https://nominatim.openstreetmap.org/search"
-    params = {'q': place, 'format': 'json', 'limit': 1}
+    url = "https://photon.komoot.io/api/"
+    params = {'q': place, 'limit': 1}
     try:
-        time.sleep(1)
         response = requests.get(url, params=params, headers=HEADERS, timeout=10)
         data = response.json()
-        if data:
+        if data and 'features' in data and len(data['features']) > 0:
+            coords = data['features'][0]['geometry']['coordinates']
+            props = data['features'][0]['properties']
             return {
-                'lat': data[0]['lat'],
-                'lon': data[0]['lon'],
-                'name': data[0]['display_name'].split(',')[0]
+                'lon': coords[0],
+                'lat': coords[1],
+                'name': props.get('name', place)
             }
         return None
     except:
