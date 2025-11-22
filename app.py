@@ -11,7 +11,7 @@ HEADERS = {
 
 @st.cache_data(ttl=3600)
 def get_coordinates(place):
-    url = "https://photon.komoot.io/api/"
+    url = "https://nominatim.openstreetmap.org/search"
     params = {'q': place, 'limit': 1}
     try:
         response = requests.get(url, params=params, headers=HEADERS, timeout=10)
