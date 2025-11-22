@@ -114,7 +114,10 @@ Sacré-Cœur
 
 <hr>
 
-🔮 Future Scope
+## Clone Repository
+Not adding as this is made for the assignment purpose of my Online assesment for AI intern
+
+## Future Scope
 
 <ul>
 <li><strong>LLM Integration:</strong> Replace Regex with OpenAI/Gemini API for advanced conversational capabilities.</li>
@@ -124,11 +127,10 @@ Sacré-Cœur
 
 <hr>
 
-👨‍💻 Author
+## Author
 
 <p><strong>V Mathesh</strong></p>
-
 <ul>
-<li><a href="https://www.linkedin.com/in/matheshv/">Connect with me on LinkedIn</a></li>
-<li><a href="https://github.com/matheshvishnu">Check out my GitHub</a></li>
+<li><a href="https://www.linkedin.com/in/matheshv/">LinkedIn</a></li>
+<li><a href="https://github.com/matheshvishnu">GitHub</a></li>
 </ul>
