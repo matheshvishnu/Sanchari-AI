@@ -2,48 +2,30 @@ import streamlit as st
 import requests
 import re
 
-# --- CONFIGURATION ---
-st.set_page_config(
-    page_title="Sanchari AI", 
-    page_icon="🌍",
-    layout="centered"
-)
+st.set_page_config(page_title="Sanchari AI", page_icon="🌍", layout="centered")
 
-# Headers to look like a legitimate browser/app
 HEADERS = {
     'User-Agent': 'SanchariAI_StudentProject/1.0', 
     'Accept': 'application/json'
 }
 
-# --- CACHED API FUNCTIONS ---
-
 @st.cache_data(ttl=3600)
 def get_coordinates(place):
-    """
-    Uses Photon API (Komoot) instead of Nominatim.
-    Photon is faster and does not block Streamlit Cloud IPs.
-    """
     url = "https://photon.komoot.io/api/"
     params = {'q': place, 'limit': 1}
-    
     try:
         response = requests.get(url, params=params, headers=HEADERS, timeout=10)
         data = response.json()
-        
         if data and 'features' in data and len(data['features']) > 0:
-            # Photon returns coordinates in [Longitude, Latitude] order
             coords = data['features'][0]['geometry']['coordinates']
             props = data['features'][0]['properties']
-            
             return {
                 'lon': coords[0],
                 'lat': coords[1],
-                'name': props.get('name', place),
-                'country': props.get('country', '')
+                'name': props.get('name', place)
             }
         return None
-    except Exception as e:
-        print(f"Map Error: {e}")
+    except:
         return None
 
 @st.cache_data(ttl=3600)
@@ -60,24 +42,22 @@ def get_weather(lat, lon):
         current = data.get('current', {})
         temp = current.get('temperature_2m', 'N/A')
         rain = current.get('precipitation_probability', 0)
-        return f"{temp}°C with a {rain}% chance of rain"
+        return f"currently {temp}°C with a chance of {rain}% to rain"
     except:
         return "weather info unavailable"
 
 @st.cache_data(ttl=3600)
 def get_places(lat, lon):
     url = "https://overpass-api.de/api/interpreter"
-    # Reduced radius to 5000m (5km) and limit to 10 for faster response
     query = f"""
     [out:json];
     node["tourism"="attraction"](around:5000, {lat}, {lon});
     out 10;
     """
     try:
-        response = requests.get(url, params={'data': query}, headers=HEADERS, timeout=20)
+        response = requests.get(url, params={'data': query}, headers=HEADERS, timeout=15)
         data = response.json()
         elements = data.get('elements', [])
-        
         valid_places = []
         seen_names = set()
         for item in elements:
@@ -89,8 +69,6 @@ def get_places(lat, lon):
     except:
         return []
 
-# --- AGENT LOGIC ---
-
 class TourismMultiAgentSystem:
     def __init__(self):
         pass
@@ -99,10 +77,9 @@ class TourismMultiAgentSystem:
         city = None
         user_input_lower = user_input.lower()
         
-        # 1. Regex Extraction (Updated for "Travel to", "Want to")
         patterns = [
-            r"(?:go to|travel to|visit|in|trip to|weather of|weather for)\s+([a-zA-Z\s]+)",
-            r"(?:places|attractions|spots)\s+(?:in|near|at)\s+([a-zA-Z\s]+)"
+            r"(?:go to|travel to|visit|in|trip to|plan my trip to)\s+([a-zA-Z\s]+)",
+            r"(?:places|attractions)\s+(?:in|near|at)\s+([a-zA-Z\s]+)"
         ]
         
         for p in patterns:
@@ -111,9 +88,7 @@ class TourismMultiAgentSystem:
                 city = match.group(1).strip()
                 break
         
-        # 2. Fallback: Smart Word Filtering
         if not city:
-            # Words to ignore so we can find the city name
             ignored_words = [
                 "i", "i'm", "im", "want", "would", "like", "to", "go", "travel", "visit", 
                 "what", "where", "tell", "me", "show", "weather", "is", "the", "how", 
@@ -127,48 +102,41 @@ class TourismMultiAgentSystem:
                     break
         
         if not city:
-            return "I'm sorry, I couldn't understand which city you want to visit. Try typing just the city name, like 'London'."
+            return "I couldn't understand which city you want to visit."
         
-        # Get Coordinates (Using Photon)
         loc_data = get_coordinates(city)
         
         if not loc_data:
-            return f"I searched for '{city}' but couldn't find it on the map. Please check the spelling."
+            return f"I couldn't find {city}."
             
-        # Intent Detection
+        lat, lon = loc_data['lat'], loc_data['lon']
+        display_city = loc_data['name']
+
         weather_keywords = ['weather', 'whether', 'temperature', 'rain', 'hot', 'cold', 'climate']
         wants_weather = any(x in user_input_lower for x in weather_keywords)
         
-        places_keywords = ['place', 'visit', 'attraction', 'trip', 'plan', 'see', 'spot']
+        places_keywords = ['place', 'visit', 'attraction', 'trip', 'plan', 'see']
         wants_places = any(x in user_input_lower for x in places_keywords)
         
-        # Default to places if no specific intent
         if not wants_weather and not wants_places:
             wants_places = True
             
-        lat, lon = loc_data['lat'], loc_data['lon']
-        display_name = loc_data['name']
-        country = loc_data['country']
-        full_location = f"{display_name}, {country}" if country else display_name
-        
         output_parts = []
 
         if wants_weather:
             weather_info = get_weather(lat, lon)
-            output_parts.append(f"**Weather in {full_location}:**\nIt is {weather_info}.")
+            output_parts.append(f"In {display_city} it’s {weather_info}.")
 
         if wants_places:
             attractions = get_places(lat, lon)
             if attractions:
-                intro = "\n**Nearby Attractions:**"
-                places_str = "\n".join([f"🏛️ {p}" for p in attractions])
+                intro = "And these are the places you can go:" if wants_weather else f"In {display_city} these are the places you can go,"
+                places_str = "\n".join(attractions)
                 output_parts.append(f"{intro}\n{places_str}")
             else:
-                output_parts.append(f"\nI found the location ({full_location}), but could not find specific tagged tourist attractions nearby in the database.")
+                output_parts.append(f"I couldn't find specific tourist spots in {display_city}.")
 
-        return "\n".join(output_parts)
-
-# --- STREAMLIT UI ---
+        return " ".join(output_parts) if wants_weather and not wants_places else "\n".join(output_parts)
 
 st.title("🌍 Sanchari AI")
 st.markdown("I can help you check the **Weather** ⛅ and find **Places to Visit** 🏛️.")
@@ -189,7 +157,7 @@ if prompt := st.chat_input("Type your travel plans here..."):
         st.markdown(prompt)
     st.session_state.messages.append({"role": "user", "content": prompt})
 
-    with st.spinner(f"Checking travel info for {prompt}..."):
+    with st.spinner("Thinking..."):
         response_text = st.session_state.agent.parent_agent(prompt)
 
     with st.chat_message("assistant"):
