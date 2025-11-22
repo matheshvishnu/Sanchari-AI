@@ -130,13 +130,17 @@ class TourismMultiAgentSystem:
         if wants_places:
             attractions = get_places(lat, lon)
             if attractions:
-                intro = "And these are the places you can go:" if wants_weather else f"In {display_city} these are the places you can go,"
+                if wants_weather:
+                    intro = "And these are the places you can go:"
+                else:
+                    intro = f"In {display_city} these are the places you can go,"
+                
                 places_str = "\n".join(attractions)
                 output_parts.append(f"{intro}\n{places_str}")
             else:
                 output_parts.append(f"I couldn't find specific tourist spots in {display_city}.")
 
-        return " ".join(output_parts) if wants_weather and not wants_places else "\n".join(output_parts)
+        return " ".join(output_parts)
 
 st.title("🌍 Sanchari AI")
 st.markdown("I can help you check the **Weather** ⛅ and find **Places to Visit** 🏛️.")
