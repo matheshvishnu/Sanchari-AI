@@ -129,6 +129,6 @@ Sacré-Cœur
 <p><strong>V Mathesh</strong></p>
 
 <ul>
-<li><a href="https://www.linkedin.com/">Connect with me on LinkedIn</a></li>
+<li><a href="https://www.linkedin.com/in/matheshv/">Connect with me on LinkedIn</a></li>
 <li><a href="https://github.com/matheshvishnu">Check out my GitHub</a></li>
 </ul>
