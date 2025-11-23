@@ -52,6 +52,32 @@ This system operates without relying on Large Language Model (LLM) internal know
 
 ---
 
+## Getting Started
+
+<h3>Option 1: Local Installation</h3>
+<ol>
+  <li><strong>Clone the repository:</strong>
+    <pre><code>git clone https://github.com/matheshvishnu/sanchari-ai.git
+cd sanchari-ai</code></pre>
+  </li>
+  <li><strong>Install dependencies:</strong>
+    <pre><code>pip install -r requirements.txt</code></pre>
+  </li>
+  <li><strong>Run the App:</strong>
+    <pre><code>streamlit run app.py</code></pre>
+  </li>
+</ol>
+
+<hr>
+
+## Project Structure
+<pre>
+├── main.py              # Local development script
+├── app.py               # Main web application & UI logic
+└── requirements.txt     # Project dependencies
+</pre>
+
+<hr>
 
 ## Usage Examples
 
